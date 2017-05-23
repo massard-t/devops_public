@@ -22,11 +22,12 @@
 ## Created : <2017-03-24>
 ## Updated: Time-stamp: <2017-05-20 00:12:12>
 ##-------------------------------------------------------------------
-import os, sys
+import os
+import sys
 import argparse
 
 import datetime
-# Install package first: pip install GitPython
+# Install package first: pip install -r requirements.txt
 import git
 
 # TODO: handle with git passphrase
