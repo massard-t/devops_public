@@ -26,7 +26,8 @@
 ##    # Remove folders: Cleanup subdirectories, keeping latest 2 directories
 ##    python cleanup_old_files.py --working_dir "/opt/app" --filename_pattern ".*" --cleanup_type directory
 ##-------------------------------------------------------------------
-import os, sys
+import os
+import sys
 import argparse
 import re
 import shutil
@@ -39,19 +40,18 @@ logging.getLogger().addHandler(logging.StreamHandler())
 
 def get_size_mb(start_path = '.'):
     total_size = 0
-    for dirpath, dirnames, filenames in os.walk(start_path):
-        for f in filenames:
-            fp = os.path.join(dirpath, f)
-            total_size += os.path.getsize(fp)
+    for dirpath, _, filenames in os.walk(start_path):
+        for filename in filenames:
+            filepath = os.path.join(dirpath, filename)
+            total_size += os.path.getsize(filepath)
     return total_size/(1000*1000)
-################################################################################
 
 def list_old_files(files, min_copies, min_size_kb):
-    l = []
+    tmp = []
     files.sort(key=os.path.getmtime, reverse=True)
     i = 0
-    for f in files:
-        if os.path.isfile(f) is False:
+    for current_file in files:
+        if os.path.isfile(current_file) is False:
             continue
         # skip too small files
         filesize_kb = os.stat(f).st_size/1000
@@ -59,36 +59,38 @@ def list_old_files(files, min_copies, min_size_kb):
             continue
         i = i + 1
         if i > min_copies:
-            l.append(f)
-    return l
+            tmp.append(f)
+    return tmp
 
 def list_old_folders(files, min_copies):
-    l = []
+    tmp = []
     files.sort(key=os.path.getmtime, reverse=True)
     i = 0
-    for f in files:
-        if os.path.isdir(f) is False:
+    for current_file in files:
+        if os.path.isdir(current_file) is False:
             continue
-        i = i + 1
+        i += 1
         if i > min_copies:
-            l.append(f)
-    return l
+            tmp.append(current_file)
+    return tmp
 
 if __name__ == '__main__':
     # get parameters from users
+    # TODO: Put args checking in function
     parser = argparse.ArgumentParser()
-    parser.add_argument('--working_dir', required=True, \
+    parser.add_argument('--working_dir', required=True,
                         help="Perform cleanup under which directory", type=str)
-    parser.add_argument('--examine_only', dest='examine_only', action='store_true', default=False, \
+    parser.add_argument('--examine_only', dest='examine_only', action='store_true', default=False,
                         help="Only list delete candidates, instead perform the actual removal")
-    parser.add_argument('--filename_pattern', required=False, default=".*", \
+    parser.add_argument('--filename_pattern', required=False, default=".*",
                         help="Filter files/directories by filename, before cleanup", type=str)
-    parser.add_argument('--cleanup_type', required=False, default='file', \
+    parser.add_argument('--cleanup_type', required=False, default='file',
                         help="Whether to perform the cleanup for files or directories", type=str)
-    parser.add_argument('--min_copies', default=3, required=False, \
+    parser.add_argument('--min_copies', default=3, required=False,
                         help='minimal copies to keep, before removal.', type=int)
-    parser.add_argument('--min_size_kb', default=100, required=False, \
-                        help='When remove files, skip files too small. It will be skipped when removing directories', type=int)
+    parser.add_argument('--min_size_kb', default=100, required=False,
+                        help='When remove files, skip files too small. It will\
+                        be skipped when removing directories', type=int)
     l = parser.parse_args()
 
     working_dir = l.working_dir
@@ -121,8 +123,8 @@ if __name__ == '__main__':
     else:
         if examine_only is True:
             logging.info("Below files/directories are selected to be removed: %s.\n"\
-                         "Skip following removal, since --examine_only has already been given." \
-                         % ",".join(l)) 
+                         "Skip following removal, since --examine_only has\
+                         already been given.", ",".join(l))
             sys.exit(0)
         else:
             # Perform the actual removal
