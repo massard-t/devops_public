@@ -12,7 +12,6 @@
 ##-------------------------------------------------------------------
 import argparse
 import subprocess
-import os, sys
 
 ################################################################################
 # TODO: move to common library
@@ -54,29 +53,26 @@ def get_nonkernel_process():
     return process_list
 
 def load_whitelist(fname):
-    white_list = ""
     if fname is None:
-        print "No white list file is given. Use default value."
-        white_list = DEFAULT_WHITE_LIST
+        print("No white list file is given. Use default value.")
+        wlist = DEFAULT_WHITE_LIST
     else:
-        print "load white list from %s" % (fname)
-        with open(fname) as f:
-            white_list = f.readlines()
-    return white_list
+        print("load white list from %s" % fname)
+        with open(fname) as current_file:
+            wlist = current_file.readlines()
+    return wlist
 
 def list_process(process_list, white_list):
-    import re
-    l = []
+    tmp = []
     for line in process_list.split("\n"):
         line = line.strip()
         if line == "":
             continue
         if not string_in_regex_list(line, white_list.split("\n")):
-            l.append(line)
-    return l
+            tmp.append(line)
+    return tmp
 
-################################################################################
-if __name__=='__main__':
+if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--whitelist_file', required=False,
                         help="config file for whitelist", type=str)
@@ -86,6 +82,6 @@ if __name__=='__main__':
     process_list = list_process(nonkernel_process_list, white_list)
 
     # Remove header
-    print "Identified processes count: %d." % (len(process_list) - 1)
-    print "\n".join(process_list)
+    print("Identified processes count: %d." % (len(process_list) - 1))
+    print("\n".join(process_list))
 ## File : detect_suspicious_process.py ends
